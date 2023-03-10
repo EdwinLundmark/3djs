@@ -41,12 +41,12 @@ const pyramidVertices = [
 ];
 
 const pyramidIndices = [
-    [0, 1, 4],
-    [1, 3, 4],
-    [2, 3, 4],
-    [0, 2, 4],
-    [1, 3, 2],
-    [1, 0, 2]
+    [0, 1, 4, randCol(), randCol(), randCol()],
+    [1, 3, 4, randCol(), randCol(), randCol()],
+    [2, 3, 4, randCol(), randCol(), randCol()],
+    [0, 2, 4, randCol(), randCol(), randCol()],
+    [1, 3, 2, randCol(), randCol(), randCol()],
+    [1, 0, 2, randCol(), randCol(), randCol()]
 ];
 
 
@@ -126,7 +126,7 @@ export class Entity {
 	    
 	]
 	
-	const FOVdeg = 90;
+	const FOVdeg = 55;
 	const FOV = (FOVdeg * Math.PI) / 180.0;
 	const tanHalfFOV = Math.tan(FOV / 2);
 	const f = 1 / tanHalfFOV;
@@ -175,6 +175,18 @@ export class Entity {
 
     public updateVertices(angleY: number, angleX: number, offset: Offset): void {
 	this.perspective = [];
+
+
+	//TODO:
+	//Implementera backface culling: https://www.youtube.com/watch?v=h_Aqol0oTs4 runt 22 min
+	//Gör så att alla trianglar går medurs.
+
+	// Backface culling:
+	// Behöver:
+	// Cross product
+	// Dot product
+	
+
 	
 	this.vertices.forEach((vertex, index) => {
 	    this.vertices[index] = this.applyMatrix(vertex, "x", angleY);
@@ -187,16 +199,17 @@ export class Entity {
     }
     
     public connectVertices(): void {
-	this.ctx.beginPath();
 	// this.ctx.strokeStyle = "#FF0000";
 	this.ctx.strokeStyle = "rgba(0,0,0,0)";
 
 	// Step 1: Loop through each triangle in pyramidIndices
 	const faces = this.indices.map((indices, i) => {
 	    // Step 2: Calculate the average z-coordinate
-	    const z = (this.vertices[indices[0]][2] +
+	    const zs = [this.vertices[indices[0]][2] +
 		this.vertices[indices[1]][2] +
-		this.vertices[indices[2]][2]) / 3;
+		this.vertices[indices[2]][2]];
+
+	    const z = zs.sort((a,b) => b - a)[0]
 	    
 	    // Step 3: Store the average z-coordinate and index of the triangle
 	    return { index: i, z };
@@ -216,6 +229,8 @@ export class Entity {
 	for (let i = 0; i < this.indices.length; i++) {
 	    this.ctx.fillStyle = `rgba(${this.indices[i][3]},${this.indices[i][4]},${this.indices[i][5]},1)`
 	    // console.log((this.perspective[this.indices[i][0]][2]))
+	    this.ctx.beginPath();
+
 	    this.ctx.moveTo(this.perspective[this.indices[i][0]][0] * scale, this.perspective[this.indices[i][0]][1] * scale)
 	    // for (let j = 1;  j < this.indices[i].length; j++) {
 	    for (let j = 1;  j < 3; j++) {
@@ -226,6 +241,6 @@ export class Entity {
 	}
 
 	
-	this.ctx.stroke();
+	// this.ctx.stroke();
     }
 }
